@@ -6,6 +6,7 @@ Bloco C: -3.769705892518997, -38.481274259828055
 Bloco D: -3.7705137296441924, -38.4804622923084
 Bloco E: -3.770237275911213, -38.481571740285325
 Bloco G: -3.768471, -38.480368
+Bloco H: -3.767757, -38.480625
 Bloco I: -3.769699677690506, -38.47970294449821
 Bloco J: -3.770080396319523, -38.47936565672149
 Bloco K: -3.7695866049254696, -38.4788187216722
@@ -29,22 +30,23 @@ Quadra de Tênis: -3.770138742540775, -38.47531552738828
 Estádio de atletismo: -3.7687663212698514, -38.475346551324556
 Campo Society: -3.7689300325801516, -38.47783743767412
 Escola Yolanda Queiroz: -3.769986303921009, -38.47452914695288
-Parque: -3.7672768370349714, -38.4751493125603
-Parque do Perfurador: -3.769480, -38.477611
 Diretório Central dos Estudantes da Unifor (DCE): -3.768627843486331, -38.47767504688812
 Reitoria: -3.768940, -38.481457
 Agência do Banco Santander: -3.770233414494173, -38.48003293205692
 Centro de Convivência: -3.769147384368767, -38.479593706826286
+Biblioteca: -3.769098, -38.480532
 
 ---Estacionamentos---
 
-Estacionamento Solar: -3.767619568400268, -38.476888140827825
-Estacionamento do Parque dos Blocos: -3.766943117402218, -38.47812425998363
-Estacionamento do Teatro Celina Queiroz: -3.7670001850691763, -38.48056286756348
-Ponto de Uber: -3.767841187342947, -38.47868397758752
-Estacionamento da Odontologia: -3.770484, -38.476551
-Estacionamento da Mecânica: -3.770462, -38.478040
-Estacionamento dos Auditórios: -3.770621369064257, -38.48088331786922
-Estacionamento dos Auditórios (Parte de trás): -3.771036439269302, -38.48162257596847
-Estacionamento da Biblioteca: -3.7682501902569094, -38.480949314947466
-Estacionamento da Reitoria: -3.769280, -38.481543
+Estacionamento das Placas Solares: -3.767619568400268, -38.476888140827825 
+Estacionamento do Parque dos Blocos: -3.766943117402218, -38.47812425998363 
+Estacionamento do Teatro Celina Queiroz: -3.7670001850691763, -38.48056286756348 
+Estacionamento da Odontologia: -3.770484, -38.476551 
+Estacionamento da Mecânica: -3.770462, -38.478040 
+Estacionamento do Refeitório: -3.770735, -38.478933 
+Estacionamento dos Auditórios: -3.770621369064257, -38.48088331786922 
+Estacionamento dos Auditórios (Parte de trás): -3.771036439269302, -38.48162257596847 
+Estacionamento próximo ao Santander: -3.770543, -38.479810 
+Estacionamento da Bloco H:  -3.7682501902569094, -38.480949314947466 
+Estacionamento da Reitoria: -3.769280, -38.481543 
+Estacionamento do Bloco Z: -3.769234, -38.474025
