@@ -47,3 +47,6 @@ Thumbs.db
 # Cache OSMnx
 cache/
 osmnx_cache/
+
+# Anotações e observações acerca do projeto
+notes for developer/
