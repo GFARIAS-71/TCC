@@ -4,8 +4,15 @@ Aplicação web para calcular rotas pedestres dentro do Campus da Universidade d
 
 ## 📋 Funcionalidades
 
-- ✅ Cálculo de rotas pedestres otimizadas
-- ✅ Visualização interativa no mapa
+- ✅ **Sistema completo de perfis de mobilidade**
+- ✅ Cálculo de rotas otimizadas por perfil (velocidade, acessibilidade)
+- ✅ Ponderação inteligente do grafo considerando:
+  - Faixas de pedestres
+  - Acessibilidade para cadeiras de rodas
+  - Escadas e rampas
+  - Inclinações
+  - Superfície dos caminhos
+- ✅ Visualização interativa no mapa com cores por perfil
 - ✅ **Marcadores coloridos por categoria** (Blocos, Estacionamentos, Outros)
 - ✅ **Seleção de POIs via dropdown organizado por categoria**
 - ✅ **Filtro visual de categorias no mapa**
@@ -24,8 +31,10 @@ unifor-rotas/
 ├── config.py                  # Configurações e constantes
 ├── data_loader.py             # Carregamento de dados (grafo e POIs)
 ├── route_calculator.py        # Lógica de cálculo de rotas
+├── graph_weighting.py         # Ponderação do grafo (acessibilidade)
+├── mobility_profiles.py       # Perfis de mobilidade
 ├── ui_components.py           # Componentes de interface (frontend)
-├── pontos_interesse.txt       # Arquivo com POIs do campus
+├── pontos de interesse.txt    # Arquivo com POIs do campus
 ├── requirements.txt           # Dependências Python
 └── README.md                  # Este arquivo
 ```
@@ -138,12 +147,28 @@ Contém a lógica de cálculo de rotas:
 - `extrair_geometria_rota()`: Extrai a geometria completa da rota
 - `gerar_gpx()`: Gera arquivo GPX para exportação
 
+### `mobility_profiles.py`
+Define os perfis de mobilidade disponíveis:
+- **Adulto Sem Dificuldades**: Perfil padrão, sem restrições
+- **Cadeirante**: Requer acessibilidade total, evita escadas
+- **Idoso**: Mobilidade reduzida, evita esforço
+- **Gestante**: Conforto e segurança, evita escadas
+- **Criança/Acompanhante**: Para carrinhos de bebê
+- **Mobilidade Temporariamente Reduzida**: Lesões temporárias
+
+### `graph_weighting.py`
+Sistema de ponderação do grafo:
+- `identificar_faixas_pedestres()`: Detecta faixas no mapa
+- `calcular_peso_aresta()`: Calcula peso baseado no perfil
+- `ponderar_grafo()`: Aplica ponderação a todas as arestas
+- Considera: wheelchair tags, escadas, inclinações, superfície, largura
+
 ### `ui_components.py`
 Componentes visuais da interface:
 - `renderizar_cabecalho()`: Título e instruções com legenda de cores
-- `renderizar_sidebar()`: Painel com seleção por categoria e filtros
-- `renderizar_mapa()`: Mapa interativo com marcadores coloridos
-- `renderizar_informacoes_rota()`: Métricas da rota calculada
+- `renderizar_sidebar()`: Painel com seleção de perfil, POIs e filtros
+- `renderizar_mapa()`: Mapa interativo com marcadores coloridos por perfil
+- `renderizar_informacoes_rota()`: Métricas adaptadas ao perfil
 
 ## 🎨 Sistema de Cores por Categoria
 

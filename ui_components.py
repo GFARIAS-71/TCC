@@ -4,6 +4,7 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 from config import CENTRO_MAPA, ZOOM_INICIAL, TILES_URL, TILES_ATTR, VELOCIDADE_CAMINHADA, TAMANHO_PASSO
+from mobility_profiles import listar_perfis, obter_descricoes_perfis, obter_perfil
 from route_calculator import gerar_gpx
 
 # Mapeamento de cores por categoria
@@ -62,6 +63,48 @@ def renderizar_sidebar(G, pontos, categorias):
     """
     with st.sidebar:
         st.header("⚙️ Painel de Controle")
+        
+        # --- SELETOR DE PERFIL DE MOBILIDADE ---
+        st.subheader("👤 Perfil de Mobilidade")
+        
+        perfis_disponiveis = listar_perfis()
+        descricoes = obter_descricoes_perfis()
+        
+        # Cria lista formatada para o selectbox
+        opcoes_perfis = list(perfis_disponiveis.values())
+        chaves_perfis = list(perfis_disponiveis.keys())
+        
+        # Encontra índice do perfil atual
+        perfil_atual = st.session_state.get("perfil_mobilidade", "padrao")
+        try:
+            indice_atual = chaves_perfis.index(perfil_atual)
+        except ValueError:
+            indice_atual = 0
+        
+        # Selectbox de perfil
+        perfil_selecionado = st.selectbox(
+            "Selecione seu perfil:",
+            opcoes_perfis,
+            index=indice_atual,
+            help="O perfil afeta a velocidade e os caminhos priorizados"
+        )
+        
+        # Converte de volta para chave
+        indice_selecionado = opcoes_perfis.index(perfil_selecionado)
+        chave_selecionada = chaves_perfis[indice_selecionado]
+        
+        # Atualiza estado se mudou
+        if chave_selecionada != st.session_state.get("perfil_mobilidade"):
+            st.session_state["perfil_mobilidade"] = chave_selecionada
+            # Limpa rota anterior ao mudar perfil
+            st.session_state["rota"] = []
+            st.session_state["distancia"] = None
+            st.rerun()
+        
+        # Mostra descrição do perfil
+        st.caption(f"ℹ️ {descricoes[chave_selecionada]}")
+        
+        st.divider()
         
         # --- Seleção de POIs por Categoria ---
         if pontos:
@@ -170,12 +213,13 @@ def renderizar_sidebar(G, pontos, categorias):
                 "clicks": st.session_state.get("clicks", []),
                 "num_pontos_rota": len(st.session_state.get("rota", [])),
                 "distancia": st.session_state.get("distancia"),
+                "perfil": st.session_state.get("perfil_mobilidade", "padrao"),
                 "filtros_ativos": st.session_state.get("filtros_categorias", [])
             })
         
         # --- Informações ---
         st.divider()
-        st.caption("💡 **Dica:** Use os filtros para facilitar a visualização no mapa!")
+        st.caption("💡 **Dica:** Escolha seu perfil de mobilidade para rotas otimizadas!")
     
     return None
 
@@ -239,27 +283,28 @@ def adicionar_marcadores_rota(m):
         ).add_to(m)
 
 
-def adicionar_linha_rota(m):
-    """Adiciona a linha da rota ao mapa"""
+def adicionar_linha_rota(m, perfil):
+    """Adiciona a linha da rota ao mapa com cor baseada no perfil"""
     rota = st.session_state.get("rota", [])
     
     if rota:
         folium.PolyLine(
             rota,
-            color="#DC143C",  # Crimson red
+            color=perfil.cor_rota,
             weight=6,
             opacity=0.85,
             popup="Rota calculada"
         ).add_to(m)
 
 
-def renderizar_mapa(pontos, categorias):
+def renderizar_mapa(pontos, categorias, perfil):
     """
     Renderiza o mapa completo com POIs, marcadores e rota.
     
     Args:
         pontos: Dicionário de POIs
         categorias: Dicionário de categorias
+        perfil: Perfil de mobilidade atual
         
     Returns:
         Dados do mapa (cliques e interações)
@@ -270,7 +315,7 @@ def renderizar_mapa(pontos, categorias):
     # Adiciona elementos
     adicionar_pois_ao_mapa(m, pontos, categorias)
     adicionar_marcadores_rota(m)
-    adicionar_linha_rota(m)
+    adicionar_linha_rota(m, perfil)
     
     # Renderiza
     map_data = st_folium(
@@ -284,7 +329,7 @@ def renderizar_mapa(pontos, categorias):
     return map_data
 
 
-def renderizar_informacoes_rota():
+def renderizar_informacoes_rota(perfil):
     """Renderiza as informações da rota calculada"""
     distancia = st.session_state.get("distancia")
     rota = st.session_state.get("rota", [])
@@ -292,16 +337,26 @@ def renderizar_informacoes_rota():
     if not distancia or not rota:
         return
     
-    # Cálculos
-    tempo_min = distancia / VELOCIDADE_CAMINHADA
-    passos = int(distancia / TAMANHO_PASSO)
+    # Cálculos baseados no perfil
+    tempo_min = distancia / perfil.velocidade_caminhada
+    
+    # Passos só faz sentido para quem caminha
+    if perfil.tamanho_passo > 0:
+        passos = int(distancia / perfil.tamanho_passo)
+        mostrar_passos = True
+    else:
+        passos = 0
+        mostrar_passos = False
     
     st.divider()
     
     # Informações principais
-    st.markdown("### 🚶‍♀️ Informações da Rota")
+    st.markdown(f"### {perfil.icone} Informações da Rota")
     
-    col1, col2, col3 = st.columns(3)
+    if mostrar_passos:
+        col1, col2, col3 = st.columns(3)
+    else:
+        col1, col2 = st.columns(2)
     
     with col1:
         st.metric(
@@ -314,20 +369,25 @@ def renderizar_informacoes_rota():
         st.metric(
             label="⏱️ Tempo Estimado",
             value=f"{tempo_min:.1f} min",
-            help=f"Baseado em velocidade de {VELOCIDADE_CAMINHADA}m/min"
+            help=f"Baseado em velocidade de {perfil.velocidade_caminhada}m/min para {perfil.nome}"
         )
     
-    with col3:
-        st.metric(
-            label="👣 Passos",
-            value=f"{passos:,}",
-            help=f"Aproximadamente {TAMANHO_PASSO}m por passo"
-        )
+    if mostrar_passos:
+        with col3:
+            st.metric(
+                label="👣 Passos",
+                value=f"{passos:,}",
+                help=f"Aproximadamente {perfil.tamanho_passo}m por passo"
+            )
+    
+    # Informações específicas do perfil
+    if perfil.requer_acessibilidade:
+        st.info("♿ Esta rota foi otimizada considerando requisitos de acessibilidade.")
     
     # Botão de exportar
     st.markdown("---")
     
-    gpx_data = gerar_gpx(rota)
+    gpx_data = gerar_gpx(rota, f"Rota Unifor - {perfil.nome}")
     
     col1, col2, col3 = st.columns([1, 1, 1])
     
@@ -335,7 +395,7 @@ def renderizar_informacoes_rota():
         st.download_button(
             label="📥 Exportar Rota (GPX)",
             data=gpx_data,
-            file_name="rota_unifor.gpx",
+            file_name=f"rota_unifor_{perfil.nome.lower().replace(' ', '_')}.gpx",
             mime="application/gpx+xml",
             use_container_width=True,
             help="Baixe a rota em formato GPX para usar em apps de GPS"

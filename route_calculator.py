@@ -73,7 +73,7 @@ def calcular_rota(G, origem, destino):
         return None, None
 
 
-def calcular_rota_completa(G, origem, destino):
+def calcular_rota_completa(G, origem, destino, perfil):
     """
     Calcula a rota e exibe mensagens de feedback ao usuário.
     
@@ -81,6 +81,7 @@ def calcular_rota_completa(G, origem, destino):
         G: Grafo NetworkX
         origem: Tupla (lat, lon) do ponto de origem
         destino: Tupla (lat, lon) do ponto de destino
+        perfil: Perfil de mobilidade do usuário
         
     Returns:
         Tupla (pontos_rota, distancia) ou (None, None) se não houver rota
@@ -92,6 +93,10 @@ def calcular_rota_completa(G, origem, destino):
             st.error("❌ Não existe rota caminhável entre esses pontos.")
             st.info("💡 Tente selecionar pontos mais próximos ou em áreas diferentes do campus.")
             return None, None
+        
+        # Mostra mensagem informativa do perfil, se houver
+        if perfil.mensagem_informativa:
+            st.info(perfil.mensagem_informativa)
         
         return pontos_rota, distancia
 

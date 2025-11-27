@@ -10,6 +10,8 @@ from ui_components import (
     renderizar_informacoes_rota
 )
 from route_calculator import calcular_rota_completa
+from mobility_profiles import obter_perfil
+from graph_weighting import ponderar_grafo
 
 # --- Configuração inicial ---
 configurar_pagina()
@@ -18,6 +20,10 @@ inicializar_estado()
 # --- Carregar dados ---
 G = carregar_grafo()
 pontos, categorias = carregar_pois("pontos de interesse.txt")
+
+# --- Pondera o grafo baseado no perfil de mobilidade ---
+perfil_atual = obter_perfil(st.session_state["perfil_mobilidade"])
+G = ponderar_grafo(G, perfil_atual)
 
 # --- Interface ---
 renderizar_cabecalho()
@@ -40,7 +46,7 @@ if st.button("🔁 Limpar seleção", use_container_width=True):
     st.rerun()
 
 # --- Renderizar mapa ---
-map_data = renderizar_mapa(pontos, categorias)
+map_data = renderizar_mapa(pontos, categorias, perfil_atual)
 
 # --- Captura de cliques ---
 if map_data:
@@ -59,7 +65,7 @@ if len(st.session_state["clicks"]) == 2 and not st.session_state["rota"]:
     origem = st.session_state["clicks"][0]
     destino = st.session_state["clicks"][1]
     
-    pontos_rota, distancia = calcular_rota_completa(G, origem, destino)
+    pontos_rota, distancia = calcular_rota_completa(G, origem, destino, perfil_atual)
     
     if pontos_rota and distancia:
         st.session_state["rota"] = pontos_rota
@@ -67,4 +73,4 @@ if len(st.session_state["clicks"]) == 2 and not st.session_state["rota"]:
         st.rerun()
 
 # --- Exibe informações da rota ---
-renderizar_informacoes_rota()
+renderizar_informacoes_rota(perfil_atual)

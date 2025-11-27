@@ -58,6 +58,7 @@ def inicializar_estado():
             "clicks": [],
             "rota": [],
             "distancia": None,
+            "perfil_mobilidade": "padrao",  # Perfil padrão
             "initialized": True,
             "debug_mode": False
         })
