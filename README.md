@@ -1,249 +1,241 @@
-# 🏫 Otimizador de Rotas a Pé - Campus Unifor
+# 🏫 Otimizador de Rotas - Campus Unifor
 
-Aplicação web para calcular rotas pedestres dentro do Campus da Universidade de Fortaleza (Unifor).
 
-## 📋 Funcionalidades
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Streamlit-1.51.0-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit">
+  <img src="https://img.shields.io/badge/NetworkX-3.6-00599C?style=for-the-badge&logo=networkx&logoColor=white" alt="NetworkX">
+  <img src="https://img.shields.io/badge/OSMnx-2.0.7-74AA50?style=for-the-badge&logo=openstreetmap&logoColor=white" alt="OSMnx">
+</p>
 
-- ✅ **Sistema completo de perfis de mobilidade**
-- ✅ Cálculo de rotas otimizadas por perfil (velocidade, acessibilidade)
-- ✅ Ponderação inteligente do grafo considerando:
-  - Faixas de pedestres
-  - Acessibilidade para cadeiras de rodas
-  - Escadas e rampas
-  - Inclinações
-  - Superfície dos caminhos
-- ✅ Visualização interativa no mapa com cores por perfil
-- ✅ **Marcadores coloridos por categoria** (Blocos, Estacionamentos, Outros)
-- ✅ **Seleção de POIs via dropdown organizado por categoria**
-- ✅ **Filtro visual de categorias no mapa**
-- ✅ Informações detalhadas: distância, tempo estimado e número de passos
-- ✅ Exportação de rotas em formato GPX
-- ✅ Interface responsiva e intuitiva
-- ✅ Modo debug para desenvolvimento
-- ✅ Suporte completo a acentuação (UTF-8)
+<p align="center">
+  <img src="https://img.shields.io/badge/GeoPandas-1.1.1-139C5A?style=for-the-badge" alt="GeoPandas">
+  <img src="https://img.shields.io/badge/Folium-0.20.0-77B829?style=for-the-badge&logo=folium&logoColor=white" alt="Folium">
+  <img src="https://img.shields.io/badge/Pandas-2.3.3-150458?style=for-the-badge&logo=pandas&logoColor=white" alt="Pandas">
+  <img src="https://img.shields.io/badge/NumPy-2.3.5-013243?style=for-the-badge&logo=numpy&logoColor=white" alt="NumPy">
+</p>
 
-## 🗂️ Estrutura do Projeto
+<p align="center">
+  <img src="https://img.shields.io/badge/Algoritmo-A*-orange?style=for-the-badge" alt="A*">
+  <img src="https://img.shields.io/badge/Teoria_dos_Grafos-blue?style=for-the-badge" alt="Graph Theory">
+  <img src="https://img.shields.io/badge/Licença-Acadêmico-green?style=for-the-badge" alt="License">
+  <a href="https://otimizador-de-rotas-campus-unifor.streamlit.app/">
+    <img src="https://img.shields.io/badge/Demo-Online-ff69b4?style=for-the-badge&logo=streamlit&logoColor=white" alt="Demo">
+  </a>
+</p>
 
+---
+
+Sistema de otimização de rotas acessíveis para pessoas com mobilidade reduzida no Campus da Universidade de Fortaleza, desenvolvido como Trabalho de Conclusão de Curso em Ciência da Computação.
+
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://otimizador-de-rotas-campus-unifor.streamlit.app/)
+
+## 📋 Sobre o Projeto
+
+Este projeto aplica **Teoria dos Grafos** para resolver um problema social importante: a mobilidade de pessoas com restrições de locomoção em ambientes universitários. O sistema modela o campus como um grafo ponderado e utiliza algoritmos de caminho mínimo (A*) para gerar rotas personalizadas e acessíveis.
+
+### Motivação
+
+- **14,7%** da população brasileira é idosa
+- **3,8%** possui deficiência física nos membros inferiores
+- **22,35%** da população adulta apresenta obesidade
+- Nas eleições de 2024, **36%** do eleitorado com dificuldades de locomoção não compareceu às urnas (vs. 20% da população geral)
+
+Estes números evidenciam a **urgência de ambientes mais inclusivos** e tecnologias que promovam a acessibilidade.
+
+## ✨ Funcionalidades
+
+### 🎯 Seleção de Rotas
+- **Clique no mapa** para definir origem e destino
+- **Seleção por POIs** através da barra lateral
+- **Categorização automática** (Blocos, Estacionamentos, Outros Lugares)
+
+### 👥 Perfis de Mobilidade
+
+| Perfil | Características | Penalizações |
+|--------|----------------|--------------|
+| **Adulto Sem Dificuldades** | Mobilidade plena (80 m/min) | Sem restrições |
+| **Cadeirante** | Requer acessibilidade total (50 m/min) | Escadas: ∞, Rampas: incentivadas |
+| **Idoso** | Mobilidade reduzida (60 m/min) | Escadas: 8x, Inclinações: 4x |
+| **Gestante** | Conforto e segurança (65 m/min) | Escadas: 5x, Esforço reduzido |
+| **Criança/Acompanhante** | Carrinhos de bebê (55 m/min) | Escadas: 10x, Rampas necessárias |
+| **Mobilidade Temporária** | Lesões/muletas (55 m/min) | Escadas: 12x, Obstáculos: 5x |
+
+### 📊 Informações Detalhadas
+- **Distância** do percurso em metros
+- **Tempo estimado** baseado no perfil
+- **Contagem de passos** (quando aplicável)
+- **Exportação GPX** para uso em apps de GPS
+- **Visualização no mapa** com cores por perfil
+
+## 🛠️ Tecnologias Utilizadas
+
+### Backend
+- **Python 3.12+**
+- **NetworkX** - Manipulação de grafos
+- **OSMnx** - Extração de dados do OpenStreetMap
+- **GeoPandas** - Processamento de dados geoespaciais
+- **Shapely** - Geometrias espaciais
+
+### Frontend
+- **Streamlit** - Interface web interativa
+- **Folium** - Mapas interativos
+- **Streamlit-Folium** - Integração Streamlit + Folium
+
+### Algoritmos
+- **A\*** com heurística euclidiana (principal)
+- Suporte para Dijkstra tradicional e estendido
+
+## 📐 Modelagem do Grafo
+
+O campus é representado como um **grafo com as seguintes características**:
+
+| Propriedade | Tipo | Justificativa |
+|-------------|------|---------------|
+| **Direção** | Não-direcionado | Caminhos bidirecionais |
+| **Pesos** | Ponderado | Distância + acessibilidade |
+| **Ciclos** | Cíclico | Múltiplas rotas interligadas |
+| **Arestas** | Simples | Máximo uma conexão entre pontos |
+| **Conectividade** | Conexo | Sempre existe um caminho |
+| **Dinamicidade** | Dinâmico | Carregamento a partir da API do OpenStreetMap e Adapta-se ao perfil do usuário |
+
+### Ponderação das Arestas
+
+O peso de cada aresta considera:
+```python
+peso_final = distância_física × (
+    penalização_escadas ×
+    penalização_rampas ×
+    penalização_inclinação ×
+    penalização_superfície ×
+    penalização_largura ×
+    penalização_faixa_pedestre
+)
 ```
-unifor-rotas/
-│
-├── main.py                    # Arquivo principal da aplicação
-├── config.py                  # Configurações e constantes
-├── data_loader.py             # Carregamento de dados (grafo e POIs)
-├── route_calculator.py        # Lógica de cálculo de rotas
-├── graph_weighting.py         # Ponderação do grafo (acessibilidade)
-├── mobility_profiles.py       # Perfis de mobilidade
-├── ui_components.py           # Componentes de interface (frontend)
-├── pontos de interesse.txt    # Arquivo com POIs do campus
-├── requirements.txt           # Dependências Python
-└── README.md                  # Este arquivo
-```
 
-## 🚀 Instalação
+## 🚀 Como Executar Localmente
 
-### 1. Clone o repositório
-
+### Pré-requisitos
 ```bash
-git clone https://github.com/seu-usuario/unifor-rotas.git
-cd unifor-rotas
+Python 3.12 ou superior
+pip (gerenciador de pacotes Python)
 ```
 
-### 2. Crie um ambiente virtual (opcional, mas recomendado)
+### Instalação
 
+1. **Clone o repositório**
+```bash
+git clone <url-do-repositorio>
+cd otimizador-rotas-unifor
+```
+
+2. **Crie um ambiente virtual** (recomendado)
 ```bash
 python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# Linux/Mac
-source venv/bin/activate
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
 ```
 
-### 3. Instale as dependências
-
+3. **Instale as dependências**
 ```bash
-pip install -r requirements.txt
+pip install -r requirement.txt
 ```
 
-### 4. Crie o arquivo de POIs
-
-Crie um arquivo chamado `pontos de interesse.txt` (note o espaço no nome) com o seguinte formato:
-
-```
----Blocos---
-
-Bloco A: -3.7710433466067315, -38.48121403014463
-Bloco B: -3.7707209350863757, -38.48137566733775
-
----Outros Lugares---
-
-Ginásio Poliesportivo: -3.7696310501219523, -38.47719764915029
-Academia: -3.7699055342732146, -38.476678514470734
-Biblioteca: -3.769098, -38.480532
-
----Estacionamentos---
-
-Estacionamento das Placas Solares: -3.767619568400268, -38.476888140827825
-Estacionamento da Reitoria: -3.769280, -38.481543
-```
-
-**Formato:**
-- Categorias são definidas entre `---Nome da Categoria---`
-- Cada POI segue o formato: `Nome: latitude, longitude`
-- Linhas vazias são ignoradas
-- Use acentuação normalmente (UTF-8)
-
-## ▶️ Como Executar
-
+4. **Execute a aplicação**
 ```bash
 streamlit run main.py
 ```
 
-A aplicação abrirá automaticamente no navegador em `http://localhost:8501`
+5. **Acesse no navegador**
+```
+http://localhost:8501
+```
 
-## 🎯 Como Usar
+## 📁 Estrutura do Projeto
+```
+.
+├── main.py                    # Aplicação principal
+├── config.py                  # Configurações e constantes
+├── data_loader.py            # Carregamento de dados (grafo + POIs)
+├── graph_weighting.py        # Ponderação do grafo por perfil
+├── mobility_profiles.py      # Definição dos perfis de mobilidade
+├── route_calculator.py       # Algoritmos de caminho mínimo
+├── ui_components.py          # Componentes da interface
+├── pontos de interesse.txt   # POIs do campus
+├── requirement.txt           # Dependências Python
+└── README.md                 # Este arquivo
+```
 
-### Opção 1: Clique no Mapa
-1. Clique em dois pontos diferentes no mapa
-2. A rota será calculada automaticamente
+## 📖 Fundamentação Teórica
 
-### Opção 2: Use os Marcadores (POIs)
-1. Clique em dois marcadores verdes no mapa
-2. A rota entre eles será traçada
+### Teoria dos Grafos
+Desenvolvida formalmente no século XX, permite modelar e resolver problemas de redes, rotas e conexões. Este projeto utiliza:
 
-### Opção 3: Selecione via Sidebar
-1. Abra a sidebar (barra lateral)
-2. Selecione "Ponto de Origem" e "Ponto de Destino"
-3. Clique em "Traçar Rota entre POIs"
+- **Algoritmo A\***: Busca heurística que combina custo real + estimativa até o destino
+- **Pesos dinâmicos**: Adaptados ao perfil do usuário em tempo real
+- **Grafo geoespacial**: Extração automática via OpenStreetMap
 
-### Limpar Seleção
-- Clique no botão "🔁 Limpar seleção" para recomeçar
+### Marcos Legais (Brasil)
 
-### Exportar Rota
-- Após calcular uma rota, clique em "📥 Exportar Rota (GPX)" para baixar o arquivo
+| Ano | Marco Legal |
+|-----|------------|
+| 1991 | Lei de Inclusão Produtiva |
+| 2000 | Lei da Acessibilidade |
+| 2003 | Estatuto do Idoso |
+| 2004 | Regulamentação da Lei da Acessibilidade |
+| 2015 | Estatuto da Pessoa com Deficiência |
+| 2021 | Inclusão da mobilidade aos direitos fundamentais (PEC) |
 
-## 📦 Módulos
+## 🎯 Objetivos do TCC
 
-### `main.py`
-Arquivo principal que coordena toda a aplicação. Gerencia o fluxo de execução e integra todos os módulos.
+### Objetivo Geral
+Desenvolver uma solução baseada em teoria dos grafos que identifique rotas otimizadas dentro do campus da Unifor para pessoas com mobilidade reduzida.
 
-### `config.py`
-Contém todas as configurações e constantes:
-- Coordenadas do campus
-- Centro do mapa e zoom
-- Filtros OSM
-- Constantes de cálculo (velocidade, tamanho do passo)
-
-### `data_loader.py`
-Responsável pelo carregamento de dados:
-- `carregar_grafo()`: Carrega a rede de caminhos usando OSMnx
-- `carregar_pois()`: Lê os pontos de interesse com suporte a categorias
-- `validar_coordenada()`: Verifica se um ponto está dentro do campus
-
-### `route_calculator.py`
-Contém a lógica de cálculo de rotas:
-- `calcular_rota()`: Calcula o caminho mais curto
-- `extrair_geometria_rota()`: Extrai a geometria completa da rota
-- `gerar_gpx()`: Gera arquivo GPX para exportação
-
-### `mobility_profiles.py`
-Define os perfis de mobilidade disponíveis:
-- **Adulto Sem Dificuldades**: Perfil padrão, sem restrições
-- **Cadeirante**: Requer acessibilidade total, evita escadas
-- **Idoso**: Mobilidade reduzida, evita esforço
-- **Gestante**: Conforto e segurança, evita escadas
-- **Criança/Acompanhante**: Para carrinhos de bebê
-- **Mobilidade Temporariamente Reduzida**: Lesões temporárias
-
-### `graph_weighting.py`
-Sistema de ponderação do grafo:
-- `identificar_faixas_pedestres()`: Detecta faixas no mapa
-- `calcular_peso_aresta()`: Calcula peso baseado no perfil
-- `ponderar_grafo()`: Aplica ponderação a todas as arestas
-- Considera: wheelchair tags, escadas, inclinações, superfície, largura
-
-### `ui_components.py`
-Componentes visuais da interface:
-- `renderizar_cabecalho()`: Título e instruções com legenda de cores
-- `renderizar_sidebar()`: Painel com seleção de perfil, POIs e filtros
-- `renderizar_mapa()`: Mapa interativo com marcadores coloridos por perfil
-- `renderizar_informacoes_rota()`: Métricas adaptadas ao perfil
-
-## 🎨 Sistema de Cores por Categoria
-
-- 🔵 **Azul** - Blocos Acadêmicos (ícone: casa)
-- 🟢 **Verde** - Outros Lugares (ícone: info)
-- 🟠 **Laranja** - Estacionamentos (ícone: carro)
-- ⚫ **Cinza** - Outros (ícone: marcador)
-
-## 🛠️ Tecnologias Utilizadas
-
-- **Streamlit**: Framework web Python
-- **OSMnx**: Download e análise de dados do OpenStreetMap
-- **NetworkX**: Cálculo de rotas em grafos
-- **Folium**: Mapas interativos
-- **Shapely**: Operações geométricas
-
-## 📊 Informações Técnicas
-
-### Filtro OSM
-A aplicação considera os seguintes tipos de vias:
-- Footway (calçadas)
-- Path (caminhos)
-- Pedestrian (áreas pedestres)
-- Living street (ruas residenciais de baixa velocidade)
-- Residential (ruas residenciais)
-- Service (vias de serviço)
-- Track (trilhas)
-- Steps (escadas)
-- Corridor (corredores)
-
-### Cálculos
-- **Velocidade de caminhada**: 80 m/min (~4.8 km/h)
-- **Tamanho do passo**: 0.75 metros
-- **Algoritmo de rota**: Dijkstra (menor distância)
-
-## 🐛 Modo Debug
-
-Para desenvolvedores, ative o "Modo Debug" na sidebar para ver:
-- Coordenadas dos cliques
-- Número de pontos na rota
-- Distância calculada
-- Estado da sessão
-
-## 📝 Formato do Arquivo GPX
-
-O arquivo exportado segue o padrão GPX 1.1, compatível com:
-- Google Maps
-- Strava
-- MapMyRun
-- Garmin
-- Outros apps de GPS
-
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Sinta-se à vontade para:
-1. Fazer fork do projeto
-2. Criar uma branch para sua feature (`git checkout -b feature/NovaFuncionalidade`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/NovaFuncionalidade`)
-5. Abrir um Pull Request
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT.
-
-## 👥 Autores
-
-Desenvolvido para o Campus da Unifor.
+### Objetivos Específicos
+1. ✅ Identificar e mapear barreiras físicas no campus
+2. ✅ Modelar o campus como grafo não-direcionado, ponderado e conexo
+3. ✅ Avaliar algoritmos de caminho mínimo (Dijkstra vs A*)
+4. ✅ Implementar interface com seleção de perfis
+5. ⏳ Testar e validar em situações reais
 
 ## 📞 Suporte
 
 Para reportar bugs ou sugerir melhorias:
 - Abra uma issue no GitHub
-- Entre em contato com a equipe de desenvolvimento
+- Entre em contato com o desenvolvedor (email: guifarias71@edu.unifor.br)
+
+## 👨‍💻 Autor
+
+**Guilherme de Farias Loureiro**
+
+- Curso: Ciência da Computação
+- Instituição: Universidade de Fortaleza (Unifor)
+- Orientador: Prof. Belmondo Rodrigues Aragao Junior
+- Ano: 2025
+
+## 📄 Licença
+
+Este projeto foi desenvolvido para fins acadêmicos como Trabalho de Conclusão de Curso. 
+
+Esta aplicação utiliza dados do OpenStreetMap. As rotas são calculadas com base nos caminhos disponíveis no OSM e podem não refletir 100% a realidade atual do campus.
+
+## 🙏 Agradecimentos
+
+> *"Este trabalho é dedicado às crianças adultas que, quando pequenas, sonharam em se tornar cientistas."*
+
+Aos meus pais, pelo amor, incentivo e apoio incondicional.
 
 ---
 
-**Nota**: Esta aplicação utiliza dados do OpenStreetMap. As rotas são calculadas com base nos caminhos disponíveis no OSM e podem não refletir 100% a realidade atual do campus.
+## 📚 Referências Principais
+
+- MELO, G. S. **Introdução à Teoria dos Grafos**. UFPB, 2014.
+- NOTO, M.; SATO, H. **A method for the shortest path search by extended Dijkstra algorithm**. IEEE, 2000.
+- BRASIL. **Lei Brasileira de Inclusão da Pessoa com Deficiência** (Lei nº 13.146/2015).
+
+---
+
+<p align="center">
+  <i>"Sem dados, você é apenas mais alguém com uma opinião."</i><br>
+  — W. Edwards Deming
+</p>
