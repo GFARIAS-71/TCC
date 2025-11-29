@@ -48,9 +48,6 @@ Thumbs.db
 cache/
 osmnx_cache/
 
-# Anotações e observações acerca do projeto
-notes_for_developer/
-teste.py
+# Other
 requirements.in
-benchmark_algoritmos.py
-benchmark_report.md
+benchmark_results/
