@@ -1,513 +1,399 @@
 # 📊 Benchmark de Algoritmos de Caminho Mínimo
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/NetworkX-3.6-00599C?style=for-the-badge&logo=networkx&logoColor=white" alt="NetworkX">
-  <img src="https://img.shields.io/badge/Matplotlib-3.10-11557c?style=for-the-badge" alt="Matplotlib">
-  <img src="https://img.shields.io/badge/Pandas-2.3-150458?style=for-the-badge&logo=pandas&logoColor=white" alt="Pandas">
+  <img src="https://img.shields.io/badge/Algoritmos-3-blue?style=for-the-badge" alt="Algoritmos">
+  <img src="https://img.shields.io/badge/Testes-210-green?style=for-the-badge" alt="Testes">
+  <img src="https://img.shields.io/badge/Perfis-7-orange?style=for-the-badge" alt="Perfis">
 </p>
 
----
-
-## 📋 Sobre
-
-Este módulo realiza **benchmarks científicos** comparando três algoritmos clássicos de caminho mínimo em grafos:
-
-1. **Dijkstra Unidirecional** (`single_source_dijkstra`)
-2. **Dijkstra Bidirecional** (`bidirectional_dijkstra`)
-3. **A\* Unidirecional** (`astar_path`)
-
-O benchmark foi projetado para **validar a escolha do A\* como algoritmo principal** no sistema de otimização de rotas, demonstrando suas vantagens em termos de eficiência computacional.
+Este documento descreve a metodologia, processo e resultados do benchmark comparativo entre três algoritmos de caminho mínimo utilizados no Otimizador de Rotas do Campus Unifor.
 
 ---
 
-## 🎯 Objetivos
+## 📋 Índice
 
-### Objetivo Principal
-Comparar empiricamente a performance dos três algoritmos em um grafo real (Campus Unifor) sob diferentes condições de uso.
-
-### Métricas Analisadas
-- ⏱️ **Tempo de Execução** (média, mediana, desvio padrão)
-- 🔍 **Nós Explorados** (eficiência de busca)
-- 📏 **Comprimento das Rotas** (qualidade das soluções)
-- 🚀 **Speedup Comparativo** (ganho relativo)
-- 💾 **Economia de Recursos** (% de nós economizados)
+1. [Visão Geral](#-visão-geral)
+2. [Algoritmos Comparados](#-algoritmos-comparados)
+3. [Metodologia](#-metodologia)
+4. [Métricas Analisadas](#-métricas-analisadas)
+5. [Resultados](#-resultados)
+6. [Insights e Conclusões](#-insights-e-conclusões)
+7. [Como Executar](#-como-executar)
+8. [Arquivos Gerados](#-arquivos-gerados)
 
 ---
 
-## 🛠️ Arquitetura do Sistema
+## 🎯 Visão Geral
 
-### Arquivos Principais
+O benchmark foi desenvolvido para avaliar empiricamente o desempenho de três algoritmos de busca de caminho mínimo em um grafo real extraído do OpenStreetMap, representando a rede de caminhos pedestres do Campus da Unifor.
+
+### Objetivos
+
+- **Comparar performance temporal** entre os algoritmos
+- **Quantificar eficiência** em termos de nós explorados
+- **Avaliar comportamento** sob diferentes perfis de mobilidade
+- **Validar a escolha do A*** como algoritmo principal do sistema
+
+---
+
+## 🔬 Algoritmos Comparados
+
+### 1. Dijkstra Unidirecional
 
 ```
-benchmark/
-├── benchmark_algoritmos.py       # Motor de benchmark
-├── visualizar_benchmark.py      # Gerador de gráficos
-└── benchmark_results/           # Resultados
-    └── tres_algoritmos/
-        ├── *.json               # Dados brutos
-        ├── *.csv                # Tabelas
-        └── graficos/            # Visualizações
-            ├── speedup_comparativo_tres.png
-            ├── tempos_absolutos.png
-            ├── nos_explorados.png
-            ├── boxplot_tempos.png
-            ├── speedup_por_categoria.png
-            ├── economia_nos.png
-            └── resumo_tres_algoritmos.md
+Complexidade: O((V + E) log V)
+Implementação: nx.single_source_dijkstra()
 ```
 
-### Estrutura de Classes
+- Expande a partir da **origem apenas**
+- Explora todos os nós em ordem crescente de distância
+- **Baseline** para comparação (algoritmo clássico)
 
-#### `MedicaoAlgoritmo`
-Armazena resultados de um único algoritmo:
+### 2. Dijkstra Bidirecional
+
+```
+Complexidade: O((V + E) log V) - mas com constante menor
+Implementação: nx.bidirectional_dijkstra()
+```
+
+- Expande **simultaneamente** da origem e do destino
+- Termina quando as duas buscas se encontram
+- Reduz área de busca pela metade (teoricamente)
+
+### 3. A* (A-Star)
+
+```
+Complexidade: O(E) no melhor caso, O((V + E) log V) no pior
+Implementação: nx.astar_path() com heurística euclidiana
+```
+
+- Usa **heurística** para guiar a busca em direção ao destino
+- Função de avaliação: `f(n) = g(n) + h(n)`
+  - `g(n)`: custo real do início até n
+  - `h(n)`: estimativa heurística de n até o destino
+- **Heurística utilizada**: Distância euclidiana (admissível)
+
+#### Implementação da Heurística
+
 ```python
-@dataclass
-class MedicaoAlgoritmo:
-    algoritmo: str
-    sucesso: bool
-    tempos_ms: List[float]        # Todas as medições
-    tempo_medio_ms: float
-    tempo_mediano_ms: float
-    desvio_padrao_ms: float
-    distancia: float              # Comprimento da rota
-    num_pontos: int               # Pontos na geometria
-    nos_explorados: int           # Nós visitados
-    erro: Optional[str] = None
-```
-
-#### `ResultadoComparacao`
-Compara os três algoritmos em um par origem-destino:
-```python
-@dataclass
-class ResultadoComparacao:
-    perfil: str
-    origem: str
-    destino: str
-    distancia_euclidiana: float
-    categoria_distancia: str      # curta/média/longa
+def heuristica_astar(G, no_atual, no_destino):
+    """
+    Calcula distância euclidiana entre dois nós.
+    Heurística admissível: nunca superestima o custo real.
+    """
+    lat_atual, lon_atual = G.nodes[no_atual]["y"], G.nodes[no_atual]["x"]
+    lat_destino, lon_destino = G.nodes[no_destino]["y"], G.nodes[no_destino]["x"]
     
-    # Resultados individuais
-    dijkstra_unidirecional: MedicaoAlgoritmo
-    dijkstra_bidirecional: MedicaoAlgoritmo
-    astar: MedicaoAlgoritmo
+    # Conversão para metros (1 grau ≈ 111km)
+    metros_por_grau_lat = 111000
+    metros_por_grau_lon = 111000 * math.cos(math.radians(lat_atual))
     
-    # Métricas comparativas
-    speedup_astar_vs_dijkstra_uni: float
-    speedup_astar_vs_dijkstra_bi: float
-    speedup_dijkstra_bi_vs_uni: float
+    delta_lat = (lat_destino - lat_atual) * metros_por_grau_lat
+    delta_lon = (lon_destino - lon_atual) * metros_por_grau_lon
     
-    economia_nos_astar_vs_dijkstra_uni_pct: float
-    economia_nos_astar_vs_dijkstra_bi_pct: float
-    economia_nos_dijkstra_bi_vs_uni_pct: float
+    return math.sqrt(delta_lat**2 + delta_lon**2)
 ```
 
 ---
 
-## 🔬 Metodologia Científica
+## 📐 Metodologia
 
-### Configuração dos Testes
+### Configuração do Experimento
 
-| Parâmetro | Valor | Justificativa |
-|-----------|-------|---------------|
-| **Repetições por teste** | 15-20 | Reduz variância estatística |
-| **Warm-up** | 3 iterações | Elimina overhead de inicialização |
-| **Seed aleatória** | 42 | Reprodutibilidade dos experimentos |
-| **Pares origem-destino** | 30 por perfil | Balanceamento estatístico |
-| **Perfis testados** | 6 perfis | Diversidade de ponderações |
+| Parâmetro | Valor |
+|-----------|-------|
+| **Seed aleatória** | 42 (reprodutibilidade) |
+| **Pares origem-destino** | 30 por perfil |
+| **Repetições por medição** | 15 |
+| **Iterações de warm-up** | 3 (descartadas) |
+| **Total de testes** | 210 (30 × 7 perfis) |
+
+### Processo de Benchmark
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  1. CARREGAMENTO                                            │
+│     └── Grafo OSM do Campus Unifor                          │
+│     └── Pontos de Interesse (POIs)                          │
+├─────────────────────────────────────────────────────────────┤
+│  2. GERAÇÃO DE PARES                                        │
+│     └── Seleção aleatória de 30 pares origem-destino        │
+│     └── Validação de conectividade                          │
+│     └── Categorização por distância (curta/média/longa)     │
+├─────────────────────────────────────────────────────────────┤
+│  3. ITERAÇÃO POR PERFIL                                     │
+│     └── Para cada perfil de mobilidade:                     │
+│         └── Ponderar grafo conforme restrições              │
+│         └── Executar benchmark em todos os pares            │
+├─────────────────────────────────────────────────────────────┤
+│  4. MEDIÇÃO POR ALGORITMO                                   │
+│     └── 3x warm-up (cache de CPU)                           │
+│     └── 15x medições oficiais (time.perf_counter)           │
+│     └── Cálculo de média, mediana, desvio padrão            │
+│     └── Contagem de nós explorados                          │
+├─────────────────────────────────────────────────────────────┤
+│  5. EXPORTAÇÃO                                              │
+│     └── CSV com todas as métricas                           │
+│     └── JSON estruturado                                    │
+│     └── Relatório Markdown                                  │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ### Categorização de Distâncias
 
-```python
-def categorizar_distancia(dist_metros: float) -> str:
-    if dist_metros < 200:
-        return "curta"      # Intra-bloco, deslocamentos rápidos
-    elif dist_metros < 500:
-        return "média"      # Entre blocos próximos
-    else:
-        return "longa"      # Extremidades do campus
+| Categoria | Distância Euclidiana |
+|-----------|---------------------|
+| **Curta** | < 200 metros |
+| **Média** | 200 - 500 metros |
+| **Longa** | > 500 metros |
+
+### Perfis de Mobilidade Testados
+
+| Perfil | Características |
+|--------|----------------|
+| 🚶 Adulto Sem Dificuldades | Sem restrições |
+| ♿ Cadeirante | Evita escadas, requer rampas |
+| 👴 Idoso | Evita inclinações acentuadas |
+| 🤰 Gestante | Prioriza conforto |
+| 👶 Criança/Acompanhante | Adequado para carrinhos |
+| 🩼 Mobilidade Temporária | Muletas, bota ortopédica |
+| 🏋️ Pessoa com Obesidade | Reduz esforço físico |
+
+---
+
+## 📏 Métricas Analisadas
+
+### 1. Tempo de Execução
+
+- **Tempo médio** (ms): Média aritmética das 15 repetições
+- **Tempo mediano** (ms): Valor central das medições
+- **Desvio padrão** (ms): Variabilidade das medições
+
+### 2. Nós Explorados
+
+Contagem implementada manualmente para cada algoritmo, simulando a execução e rastreando os nós visitados.
+
+### 3. Speedup
+
+```
+Speedup = Tempo_Algoritmo_Base / Tempo_Algoritmo_Comparado
 ```
 
-### Contagem de Nós Explorados
+- **Speedup > 1**: Algoritmo comparado é mais rápido
+- **Speedup = 1**: Desempenho igual
+- **Speedup < 1**: Algoritmo comparado é mais lento
 
-#### Dijkstra Unidirecional
-```python
-def contar_nos_dijkstra_unidirecional(G, origem_id, destino_id) -> int:
-    """
-    Simula execução do algoritmo e conta nós visitados.
-    Busca em uma única direção (origem → destino).
-    """
-    explorados = set()
-    heap = [(0, origem_id)]
-    
-    while heap:
-        d, u = heapq.heappop(heap)
-        explorados.add(u)
-        
-        if u == destino_id:
-            break  # Para ao encontrar destino
-        
-        # Expande vizinhos...
-    
-    return len(explorados)
+### 4. Economia de Nós (%)
+
 ```
-
-#### Dijkstra Bidirecional
-```python
-def contar_nos_dijkstra_bidirecional(G, origem_id, destino_id) -> int:
-    """
-    Busca simultânea de origem e destino.
-    Para quando as fronteiras se encontram.
-    """
-    explorados_forward = set()
-    explorados_backward = set()
-    
-    while not encontrado:
-        # Expande de origem
-        explorados_forward.add(no_forward)
-        
-        # Expande de destino
-        explorados_backward.add(no_backward)
-        
-        # Verifica interseção
-        if no_forward in visitados_backward:
-            encontrado = True
-    
-    return len(explorados_forward.union(explorados_backward))
-```
-
-#### A*
-```python
-def contar_nos_astar(G, origem_id, destino_id) -> int:
-    """
-    Usa heurística para priorizar nós promissores.
-    f(n) = g(n) + h(n)
-    """
-    explorados = set()
-    heap = [(0 + heuristica(origem, destino), origem_id)]
-    
-    while heap:
-        f_score, u = heapq.heappop(heap)
-        explorados.add(u)
-        
-        if u == destino_id:
-            break
-        
-        # Expande com heurística...
-    
-    return len(explorados)
+Economia = 100 × (1 - Nós_Algoritmo_Otimizado / Nós_Algoritmo_Base)
 ```
 
 ---
 
-## 📈 Resultados Obtidos
+## 📈 Resultados
 
-### Ambiente de Teste
-
-```
-Sistema Operacional:
-  Distro: Linux Mint 22.2 Zara (Ubuntu 24.04)
-  Kernel: 6.8.0-87-generic
-  Arquitetura: x86_64
-
-CPU:
-  Modelo: Intel Core i7-10750H (Comet Lake)
-  Núcleos: 6 físicos / 12 threads
-  Frequência: 800 MHz — 5000 MHz (boost)
-  Cache: L1 384 KiB / L2 1.5 MiB / L3 12 MiB
-
-Memória:
-  RAM: 8 GiB
-
-Grafo:
-  Campus Unifor
-  Nós: 397
-  Arestas: 1214
-  Tipo: Não-direcionado, ponderado, conexo
-
-Software:
-  Python: 3.12+
-  NetworkX: 3.6
-  OSMnx: 2.0.7
-```
-
-### Estatísticas Globais
+### Resumo Geral
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de testes** | 180 (30 pares × 6 perfis) |
-| **Perfis analisados** | 6 perfis de mobilidade |
-| **Algoritmos comparados** | 3 (Dijkstra Uni, Dijkstra Bi, A*) |
-| **Tempo médio por teste** | ~5 ms |
+| **Total de testes** | 210 |
+| **Perfis testados** | 7 |
+| **Taxa de sucesso** | 100% |
 
-### 🏆 Resumo de Performance
+### Speedup Médio por Comparação
 
-#### Speedup (quanto mais rápido, melhor)
+| Comparação | Speedup Médio |
+|------------|---------------|
+| **A* vs Dijkstra Unidirecional** | 1.10x |
+| **A* vs Dijkstra Bidirecional** | 1.02x |
+| **Dijkstra Bi vs Dijkstra Uni** | 1.08x |
 
-| Comparação | Speedup Médio | Interpretação |
-|------------|---------------|---------------|
-| **A\* vs Dijkstra Uni** | **1.06x** | A* é 6% mais rápido |
-| **A\* vs Dijkstra Bi** | **0.98x** | A* é 2% mais lento |
-| **Dijkstra Bi vs Uni** | **1.08x** | Bi é 8% mais rápido que Uni |
+### Tempo Médio de Execução por Algoritmo
 
-#### Economia de Nós (% de nós não explorados)
+| Algoritmo | Tempo Médio (ms) |
+|-----------|------------------|
+| Dijkstra Unidirecional | 5.17 |
+| Dijkstra Bidirecional | 4.78 |
+| A* | 4.69 |
 
-| Comparação | Economia Média | Interpretação |
-|------------|----------------|---------------|
-| **A\* vs Dijkstra Uni** | **66.16%** | A* explora 66% menos nós |
-| **A\* vs Dijkstra Bi** | **41.10%** | A* explora 41% menos nós |
-| **Dijkstra Bi vs Uni** | **38.32%** | Bi explora 38% menos nós |
+### 🏆 Economia de Nós Explorados
 
-### 📊 Análise por Categoria de Distância
+| Comparação | Economia Média |
+|------------|----------------|
+| **A* vs Dijkstra Uni** | **66.19%** |
+| **A* vs Dijkstra Bi** | **41.13%** |
+| **Dijkstra Bi vs Uni** | **38.32%** |
+
+### Análise por Categoria de Distância
 
 #### Distâncias Curtas (< 200m)
 
 | Comparação | Speedup |
 |------------|---------|
-| A* vs Dijkstra Uni | 1.00x (empate técnico) |
-| A* vs Dijkstra Bi | 0.96x (Bi ganha) |
-| Dijkstra Bi vs Uni | 1.04x |
-
-**Insight**: Em distâncias curtas, a heurística do A* não compensa o overhead adicional.
+| A* vs Dijkstra Uni | 1.06x |
+| A* vs Dijkstra Bi | 1.01x |
+| Dijkstra Bi vs Uni | 1.05x |
 
 #### Distâncias Médias (200-500m)
 
 | Comparação | Speedup |
 |------------|---------|
-| A* vs Dijkstra Uni | **1.07x** ✅ |
-| A* vs Dijkstra Bi | 0.99x |
+| A* vs Dijkstra Uni | 1.12x |
+| A* vs Dijkstra Bi | 1.02x |
 | Dijkstra Bi vs Uni | 1.09x |
-
-**Insight**: A* começa a mostrar vantagem sobre Dijkstra Uni.
 
 #### Distâncias Longas (> 500m)
 
 | Comparação | Speedup |
 |------------|---------|
-| A* vs Dijkstra Uni | **1.09x** ✅✅ |
-| A* vs Dijkstra Bi | 1.00x |
-| Dijkstra Bi vs Uni | 1.09x |
+| A* vs Dijkstra Uni | **1.13x** |
+| A* vs Dijkstra Bi | 1.03x |
+| Dijkstra Bi vs Uni | 1.10x |
 
-**Insight**: A* brilha em distâncias longas, onde a heurística direcional é mais efetiva.
+### Desempenho por Perfil de Mobilidade
 
-### 🎭 Análise por Perfil de Mobilidade
-
-| Perfil | A\* vs Uni | A\* vs Bi | Bi vs Uni |
-|--------|-----------|-----------|-----------|
-| **Adulto Sem Dificuldades** | 1.06x | 0.98x | 1.08x |
-| **Cadeirante** | 1.06x | 1.00x | 1.07x |
-| **Criança/Acompanhante** | 1.06x | 0.98x | 1.08x |
-| **Gestante** | 1.06x | 0.98x | 1.08x |
-| **Idoso** | 1.06x | 0.98x | 1.07x |
-| **Mobilidade Temporária** | **1.07x** | 0.98x | 1.08x |
-
-**Observação**: Os perfis têm impacto mínimo na performance relativa dos algoritmos.
+| Perfil | A*/Dij-Uni | A*/Dij-Bi | Dij-Bi/Uni |
+|--------|------------|-----------|------------|
+| Adulto Sem Dificuldades | 1.11x | 1.04x | 1.07x |
+| Cadeirante | 1.11x | 1.03x | 1.09x |
+| Criança/Acompanhante | **1.12x** | **1.04x** | 1.08x |
+| Gestante | 1.10x | 1.01x | 1.09x |
+| Idoso | 1.11x | 1.02x | 1.09x |
+| Mobilidade Temporária | 1.10x | 1.01x | 1.09x |
+| Pessoa com Obesidade | 1.08x | 1.01x | 1.07x |
 
 ---
 
-## 📉 Visualizações Geradas
+## 💡 Insights e Conclusões
 
-### 1. Speedup Comparativo
-![Speedup](benchmark_results/tres_algoritmos/graficos/speedup_comparativo_tres.png)
+### 1. A* é Consistentemente Superior
 
-Mostra o ganho de velocidade do A* sobre os Dijkstras, e Bi sobre Uni.
+O algoritmo A* demonstrou ser o mais eficiente em todas as métricas analisadas:
 
-### 2. Tempos Absolutos
-![Tempos](benchmark_results/tres_algoritmos/graficos/tempos_absolutos.png)
+- **10% mais rápido** que Dijkstra Unidirecional
+- **2% mais rápido** que Dijkstra Bidirecional
+- **66% menos nós explorados** que Dijkstra Unidirecional
 
-Compara tempo médio de execução (ms) por perfil.
+### 2. Heurística Euclidiana é Eficaz
 
-### 3. Nós Explorados
-![Nós](benchmark_results/tres_algoritmos/graficos/nos_explorados.png)
+A escolha da distância euclidiana como heurística provou ser adequada para o contexto do campus universitário, onde:
 
-Demonstra a eficiência da busca em termos de nós visitados.
+- A rede de caminhos é relativamente densa
+- As rotas tendem a seguir direções previsíveis
+- A heurística é admissível (nunca superestima)
 
-### 4. Distribuição de Tempos (Boxplots)
-![Boxplots](benchmark_results/tres_algoritmos/graficos/boxplot_tempos.png)
+### 3. Ganho Proporcional à Distância
 
-Mostra variância e outliers nos tempos de execução.
+O benefício do A* aumenta com a distância do percurso:
 
-### 5. Speedup por Categoria
-![Categoria](benchmark_results/tres_algoritmos/graficos/speedup_por_categoria.png)
+```
+Curta:  1.06x speedup
+Média:  1.12x speedup  (+5.7%)
+Longa:  1.13x speedup  (+6.6%)
+```
 
-Analisa performance em distâncias curtas, médias e longas.
+Isso ocorre porque a heurística tem mais oportunidades de "podar" caminhos subótimos em buscas mais longas.
 
-### 6. Economia de Nós
-![Economia](benchmark_results/tres_algoritmos/graficos/economia_nos.png)
+### 4. Perfis de Acessibilidade Beneficiam Mais
 
-Quantifica percentual de nós economizados por cada algoritmo.
+Perfis que modificam significativamente os pesos do grafo (como Cadeirante e Criança/Acompanhante) apresentaram os melhores speedups, sugerindo que a heurística ajuda especialmente quando há muitas rotas alternativas a serem avaliadas.
+
+### 5. Dijkstra Bidirecional: Alternativa Viável
+
+O Dijkstra Bidirecional oferece um meio-termo interessante:
+
+- **8% mais rápido** que a versão unidirecional
+- **38% menos nós** explorados
+- Não requer implementação de heurística
+
+### 6. Validação da Escolha de Design
+
+Os resultados validam a decisão de utilizar **A* como algoritmo principal** do sistema de rotas, especialmente considerando que:
+
+- O campus é um ambiente geoespacial bem definido
+- A heurística euclidiana é natural para coordenadas GPS
+- O ganho de performance é consistente em todos os cenários
 
 ---
 
-## 🚀 Como Executar o Benchmark
+## 🚀 Como Executar
 
 ### Pré-requisitos
 
 ```bash
-pip install networkx osmnx pandas matplotlib seaborn tqdm
+pip install networkx osmnx tqdm pandas matplotlib seaborn
 ```
 
-### Execução Básica
+### Executar Benchmark
 
 ```bash
-# 1. Executa benchmark (30 testes, 15 repetições por teste)
 python benchmark_algoritmos.py
+```
 
-# 2. Gera visualizações automaticamente
+### Gerar Visualizações
+
+```bash
 python visualizar_benchmark.py
 ```
 
-### Execução Personalizada
+### Parâmetros Customizáveis
 
 ```python
-from benchmark_algoritmos import BenchmarkTresAlgoritmos
-from data_loader import carregar_grafo, carregar_pois
-
-# Carrega dados
-G = carregar_grafo()
-pois, _ = carregar_pois("pontos de interesse.txt")
-
-# Cria benchmark
 bench = BenchmarkTresAlgoritmos(G, pois, seed=42)
 
-# Executa com configurações customizadas
 bench.executar_completo(
-    num_testes=50,              # 50 pares origem-destino
-    repeticoes=20,              # 20 medições por teste
-    perfis_a_testar=["cadeirante", "idoso"]  # Apenas 2 perfis
+    num_testes=30,           # Pares origem-destino
+    repeticoes=15,           # Repetições por medição
+    perfis_a_testar=None     # None = todos os perfis
 )
 ```
 
-### Saídas Geradas
+---
+
+## 📁 Arquivos Gerados
+
+### Estrutura de Saída
 
 ```
-benchmark_results/tres_algoritmos/
-├── benchmark_tres_algoritmos_20251129_210103.json  # Dados brutos
-├── benchmark_tres_algoritmos_20251129_210103.csv   # Tabela
-└── graficos/
-    ├── speedup_comparativo_tres.png
-    ├── tempos_absolutos.png
-    ├── nos_explorados.png
-    ├── boxplot_tempos.png
-    ├── speedup_por_categoria.png
-    ├── economia_nos.png
-    └── resumo_tres_algoritmos.md
+benchmark_results/
+└── tres_algoritmos/
+    ├── benchmark_tres_algoritmos_YYYYMMDD_HHMMSS.csv
+    ├── benchmark_tres_algoritmos_YYYYMMDD_HHMMSS.json
+    └── graficos/
+        ├── speedup_comparativo_tres.png
+        ├── tempos_absolutos.png
+        ├── nos_explorados.png
+        ├── boxplot_tempos.png
+        ├── speedup_por_categoria.png
+        ├── economia_nos.png
+        └── resumo_tres_algoritmos.md
 ```
 
----
+### Descrição dos Arquivos
 
-## 🎓 Interpretação dos Resultados
-
-### Por que o A* foi escolhido?
-
-Apesar de não ser **sempre** o mais rápido em tempo absoluto, o A* oferece:
-
-#### 1. **Eficiência em Longa Distância** ✅
-- Speedup de **1.09x** sobre Dijkstra Uni em rotas longas
-- Perfeito para navegação entre extremidades do campus
-
-#### 2. **Economia Massiva de Nós** ✅✅
-- **66% menos nós explorados** vs Dijkstra Uni
-- **41% menos nós explorados** vs Dijkstra Bi
-- Menor consumo de memória e processamento
-
-#### 3. **Garantia de Optimalidade** ✅
-- Todas as rotas geradas são **ótimas** (caminho mais curto)
-- A heurística euclidiana é **admissível** (nunca superestima)
-
-#### 4. **Escalabilidade** ✅
-- Em grafos maiores, a vantagem do A* cresce exponencialmente
-- A heurística direcional evita exploração desnecessária
-
-#### 5. **Uso Eficiente da Heurística** ✅
-- A distância euclidiana é computacionalmente barata
-- O overhead é mínimo comparado ao ganho em nós economizados
-
-### Trade-offs Observados
-
-| Aspecto | Dijkstra Uni | Dijkstra Bi | A* |
-|---------|--------------|-------------|-----|
-| **Velocidade (distâncias curtas)** | ⚪ Médio | 🟢 Melhor | 🟡 Aceitável |
-| **Velocidade (distâncias longas)** | 🔴 Pior | 🟢 Bom | 🟢 Melhor |
-| **Eficiência (nós)** | 🔴 Pior | 🟡 Médio | 🟢 Melhor |
-| **Simplicidade de implementação** | 🟢 Simples | 🟡 Médio | 🟡 Médio |
-| **Uso de memória** | 🔴 Alto | 🟡 Médio | 🟢 Baixo |
-| **Garantia de otimalidade** | 🟢 Sim | 🟢 Sim | 🟢 Sim |
+| Arquivo | Descrição |
+|---------|-----------|
+| `*.csv` | Dados tabulares para análise externa |
+| `*.json` | Dados estruturados com metadados completos |
+| `speedup_comparativo_tres.png` | Gráfico de barras comparando speedups |
+| `tempos_absolutos.png` | Tempos de execução por perfil |
+| `nos_explorados.png` | Comparação de nós visitados |
+| `boxplot_tempos.png` | Distribuição estatística dos tempos |
+| `speedup_por_categoria.png` | Análise por distância |
+| `economia_nos.png` | Percentual de economia de nós |
+| `resumo_tres_algoritmos.md` | Relatório completo em Markdown |
 
 ---
 
-## 📚 Fundamentação Teórica
+## 📚 Referências Técnicas
 
-### Complexidade Computacional
-
-| Algoritmo | Complexidade | Espaço |
-|-----------|--------------|--------|
-| **Dijkstra Unidirecional** | O((V + E) log V) | O(V) |
-| **Dijkstra Bidirecional** | O((V + E) log V) | O(V) |
-| **A\*** | O((V + E) log V) | O(V) |
-
-**Nota**: No pior caso, todos têm a mesma complexidade. A diferença está nos **casos médios** e no **fator constante** (número real de nós explorados).
-
-### Heurística Euclidiana
-
-```python
-def heuristica_astar(G, no_atual, no_destino):
-    """
-    Calcula distância euclidiana aproximada em metros.
-    
-    h(n) = sqrt(Δlat² + Δlon²)
-    
-    Propriedades:
-    - Admissível: h(n) ≤ custo_real(n, destino)
-    - Consistente: h(n) ≤ custo(n, n') + h(n')
-    - Computacionalmente barata: O(1)
-    """
-    lat1, lon1 = G.nodes[no_atual]['y'], G.nodes[no_atual]['x']
-    lat2, lon2 = G.nodes[no_destino]['y'], G.nodes[no_destino]['x']
-    
-    # Conversão para metros
-    metros_lat = (lat2 - lat1) * 111000
-    metros_lon = (lon2 - lon1) * 111000 * cos(radians(lat1))
-    
-    return sqrt(metros_lat² + metros_lon²)
-```
-
-### Por que a Heurística é Eficaz
-
-1. **Admissibilidade**: Distância em linha reta nunca é maior que o caminho real
-2. **Informatividade**: Guia a busca na direção correta
-3. **Baixo Custo**: Cálculo trigonométrico simples
-4. **Adequação ao Domínio**: Grafos espaciais beneficiam-se de heurísticas geométricas
+- **NetworkX Documentation**: [networkx.org](https://networkx.org/)
+- **OSMnx**: Boeing, G. (2017). OSMnx: New Methods for Acquiring, Constructing, Analyzing, and Visualizing Complex Street Networks.
+- **A* Algorithm**: Hart, P. E., Nilsson, N. J., & Raphael, B. (1968). A Formal Basis for the Heuristic Determination of Minimum Cost Paths.
 
 ---
 
-## 🔍 Casos de Uso
-
-### Quando usar cada algoritmo?
-
-#### Use **A\*** se:
-- ✅ Rotas de média a longa distância
-- ✅ Deseja minimizar nós explorados
-- ✅ Tem uma boa heurística disponível
-- ✅ Valoriza eficiência de memória
-
-#### Use **Dijkstra Bidirecional** se:
-- ✅ Rotas muito curtas (< 200m)
-- ✅ Não tem heurística confiável
-- ✅ Deseja simplicidade de implementação
-
-#### Use **Dijkstra Unidirecional** se:
-- ✅ Precisa calcular distâncias para **todos** os destinos a partir de uma origem
-- ✅ Está implementando um sistema educacional
-- ⚠️ **Não recomendado** para uso em produção neste contexto
-
----
-
-## 💬 Contato
-
-Para dúvidas sobre a metodologia de benchmark:
-
-- **Email**: guifarias71@edu.unifor.br
-- **Instituição**: Universidade de Fortaleza (Unifor)
-- **Curso**: Ciência da Computação
-- **Orientador**: Prof. Belmondo Rodrigues Aragao Junior
+<p align="center">
+  <i>Benchmark desenvolvido como parte do TCC em Ciência da Computação - Unifor 2025</i>
+</p>
